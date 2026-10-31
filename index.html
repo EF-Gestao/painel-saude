@@ -66,6 +66,7 @@
 </header>
 
 <div id="geral" class="banner off"><span class="dot"></span><span id="geralTxt">Carregando…</span></div>
+<div class="sub" id="usuarios" style="margin:-6px 0 12px 2px;font-weight:600"></div>
 
 <div class="grid" id="nos"></div>
 
@@ -100,7 +101,8 @@
       '<div class="metric"><div class="row"><span>Metaspace</span><b data-r="metaTxt">—</b></div><div class="bar" data-r="metaBar"><i></i></div></div>' +
       '<div class="metric"><div class="row"><span>Heap</span><b data-r="heapTxt">—</b></div><div class="bar" data-r="heapBar"><i></i></div></div>' +
       '<div class="kv"><div>Banco<b data-r="db">—</b></div><div>No ar há<b data-r="up">—</b></div>' +
-      '<div>Classes<b data-r="cls">—</b></div><div>Threads<b data-r="thr">—</b></div></div>' +
+      '<div>Classes<b data-r="cls">—</b></div><div>Threads<b data-r="thr">—</b></div>' +
+      '<div>Usuários ativos<b data-r="usr">—</b></div><div>Logados<b data-r="log">—</b></div></div>' +
       '<div class="err" data-r="err" hidden></div>';
     elNos.appendChild(c);
   });
@@ -143,6 +145,11 @@
       q(i, "up").textContent = fmtUp(d.uptimeMs);
       q(i, "cls").textContent = d.classes.toLocaleString("pt-BR");
       q(i, "thr").textContent = d.threads;
+      if (d.usuarios) {
+        estado[i].ativos = d.usuarios.ativos; estado[i].logados = d.usuarios.logados;
+        q(i, "usr").textContent = d.usuarios.ativos + " (últ. " + d.usuarios.janelaMin + " min)";
+        q(i, "log").textContent = d.usuarios.logados + " sessões";
+      } else { estado[i].ativos = null; estado[i].logados = null; q(i, "usr").textContent = "n/d"; q(i, "log").textContent = "n/d"; }
       var e = q(i, "err");
       if (st === "crit") { e.hidden = false; e.textContent = !d.db.ok ? "Banco de dados sem resposta." : "Memória acima do limite crítico."; }
       else if (st === "warn") { e.hidden = false; e.textContent = "Memória acima de 85% — acompanhe."; }
@@ -183,6 +190,9 @@
       g.className = "banner " + pior;
       document.getElementById("geralTxt").textContent = txt[pior];
       document.title = (pior === "crit" ? "🔴 " : pior === "warn" ? "🟡 " : pior === "ok" ? "🟢 " : "") + "Saúde dos Nós";
+      var tot = 0, algum = false;
+      estado.forEach(function (s, i) { if (res[i] !== "crit" && res[i] !== "off" && typeof s.ativos === "number") { tot += s.ativos; algum = true; } });
+      document.getElementById("usuarios").textContent = algum ? tot + (tot === 1 ? " usuário ativo" : " usuários ativos") + " (15 min)" : "";
       document.getElementById("atualizado").textContent = new Date().toLocaleTimeString("pt-BR");
     });
   }
